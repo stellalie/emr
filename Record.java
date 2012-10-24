@@ -73,7 +73,7 @@ public class Record
    			&& instructionData.get(Attribute.BIRTHDAY) !=null) {
    		String name = instructionData.get(Attribute.NAME);
    		Date birthday = EMRUtil.stringToDate(instructionData.get(Attribute.BIRTHDAY));
-   		records.remove(this.findPatient(birthday, records));
+   		records.remove(this.findPatient(name, birthday, records));
    	}
    }
 
