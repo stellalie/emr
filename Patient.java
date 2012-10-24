@@ -88,7 +88,8 @@ public class Patient {
     }
     
     private String toStringMedicalHistory() {
-        if (medicalHistory == null) return String.format("%-20s %-40s %n", "medicalHistory", "None");
+        if (medicalHistory.size() == 0) 
+      	  return String.format("%-20s %-40s %n", "medicalHistory", "None");
         String s = "";
         boolean firstLine = true;
         for (Diagnosis d: medicalHistory) {
