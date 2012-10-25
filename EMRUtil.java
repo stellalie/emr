@@ -1,22 +1,17 @@
 import java.io.*;
 import java.util.*;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.text.ParsePosition;
 import java.util.regex.Pattern;
 
 public class EMRUtil {
-    public static String[] attributes = { 
-    	Attribute.NAME, 
-    	Attribute.PATIENTID, 
-        Attribute.BIRTHDAY, 
-        Attribute.PHONE, 
-        Attribute.EMAIL, 
-        Attribute.MEDICALHISTORY, 
-        Attribute.ADDRESS,
-      	"medicalHistory" };
-    public static int lastUsedId = 0;
-    
-    public static boolean phoneIsValid(String s) {
+	public static String[] attributes = { Attribute.NAME, Attribute.PATIENTID,
+			Attribute.BIRTHDAY, Attribute.PHONE, Attribute.EMAIL,
+			Attribute.MEDICALHISTORY, Attribute.ADDRESS, "medicalHistory" };
+	public static int lastUsedId = 0;
+
+	public static boolean phoneIsValid(String s) {
         if (s == null) return false;
         return s.matches("-?\\d+(\\.\\d+)?");
     }
@@ -34,14 +29,23 @@ public class EMRUtil {
         if ((s.length() - s.replaceAll("\\.", "").length()) != 1) return false;
         return true;
     }
-    
+
     public static boolean dateIsValid(String s) {
-        if (s == null) return false;
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-mm-yyyy");
-        sdf.setLenient(false);
-        return sdf.parse(s, new ParsePosition(0)) != null;
+   	 if (s == null)
+   		 return false;
+   	 try {
+   		 SimpleDateFormat format = new SimpleDateFormat(s);
+   		 format.setLenient(false);
+   		 format.parse(s);
+   		 //Date date = new SimpleDateFormat("dd-mm-yyyy", Locale.ENGLISH).parse(s);
+   		 //System.out.println(s + " " + date + " is pass");
+   		 return true;
+   	 } catch (Exception e) {
+   		 //System.out.println(s +" is FAIL");
+   		 return false;
+   	 }
     }
-    
+
     public static Date stringToDate(String s) throws java.text.ParseException {
         return new SimpleDateFormat("dd-mm-yyyy", Locale.ENGLISH).parse(s);
     }

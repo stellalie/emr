@@ -8,11 +8,13 @@ import java.util.regex.Pattern;
 public class Record
 {
    private LinkedList<Patient> patients = new LinkedList<Patient>();
+   private File reportFile;
 
-   public Record(File medicalRecordFile, File instructionFile, File outputFile) 
+   public Record(File medicalRecordFile, File instructionFile, File outputFile, File reportFile) 
    		throws FileNotFoundException, java.text.ParseException
    {
       LinkedList<Patient> records = createPatientRecord(medicalRecordFile);
+      this.reportFile = reportFile;
       this.executeInstructions(instructionFile, records);
       this.printOutput(outputFile);
       // print();
@@ -21,7 +23,6 @@ public class Record
    private void executeInstructions(File instructionFile, LinkedList<Patient> records) 
    		throws FileNotFoundException, java.text.ParseException
    {
-      LinkedList<String[]> instructions = new LinkedList<String[]>();
       Scanner scanner = new Scanner(instructionFile);
       String command = "", data = "";
       while (scanner.hasNext())
@@ -30,19 +31,19 @@ public class Record
          if (scanner.hasNextLine())
             data = scanner.nextLine();
 
-         this.execute(command, this.readInstructionData(command, data.trim()), records);
+         this.execute(command, data.trim(), this.readInstructionData(command, data.trim()), records);
          command = "";
          data = "";
       }
    }
 
-   private void execute(String command, Map<String, String> data, LinkedList<Patient> records) 
+   private void execute(String command, String rawData, Map<String, String> data, LinkedList<Patient> records) 
    		throws java.text.ParseException
    {
       if (command.equals(Command.SAVE))
          executeSave(records);
       else if (command.equals(Command.QUERY))
-         executeQuery(data, records);
+         executeQuery(rawData, data, records);
       else if (command.equals(Command.ADD))
          executeAdd(data, records);
       else if (command.equals(Command.DELETE))
@@ -56,8 +57,44 @@ public class Record
       patients.addAll(records);
    }
 
-   private void executeQuery(Map<String, String> instructionData, LinkedList<Patient> records)
+   private void executeQuery(String rawData, Map<String, String> instructionData, LinkedList<Patient> records)
+   		throws java.text.ParseException
    {
+   	// query by name
+   	if (instructionData.get(Attribute.NAME) != null)
+   		this.appendQueryResult(this.findPatient(instructionData.get(Attribute.NAME), records), rawData);
+   	
+   	// query by birthday
+   	if (instructionData.get(Attribute.BIRTHDAY) != null)
+   	{
+   		Date birthday = EMRUtil.stringToDate(instructionData.get(Attribute.BIRTHDAY));
+   		this.appendQueryResult(this.findPatient(birthday, records), rawData);
+   	}
+   	
+   	// query by id
+   	if (instructionData.get(Attribute.PATIENTID) != null) 
+   	{
+   		int id = Integer.parseInt(instructionData.get(Attribute.PATIENTID));
+   		if (this.findPatient(id, records) != null) {
+   			LinkedList<Patient> results = new LinkedList<Patient>();
+   			results.add(this.findPatient(id, records));
+   			this.appendQueryResult(results, rawData);
+   		}
+   	}
+   }
+   
+   private void appendQueryResult(LinkedList<Patient> results, String rawData)
+   {
+   	try {
+	   	PrintWriter out = new PrintWriter(new FileOutputStream(this.reportFile), true);
+	   	System.out.println(rawData);
+	   	for (Patient p: results) {
+	   		out.println(p.toString());
+	   	}
+	   	out.close();
+   	} catch (Exception e) {
+   		System.out.println("Report file not found!");
+   	}
    }
 
    private void executeDelete(Map<String, String> instructionData, LinkedList<Patient> records) 
@@ -80,11 +117,12 @@ public class Record
    private void executeAdd(Map<String, String> instructionData, LinkedList<Patient> records) 
    		throws ParseException
    {
-   	// TODO: assuming all data correct & exists, might need to check valid/missing data
+   	// assuming all data correct & exists, might need data validation here
       Patient tempPatient = createPatient(instructionData);
       Patient patient = findPatient(tempPatient.getName(), tempPatient.getBirthday(), records);
       
-      if (patient == null) // Patient does not already exist
+      // Patient does not already exist
+      if (patient == null) 
          records.add(tempPatient);
       else
       {
@@ -107,11 +145,14 @@ public class Record
 			String curr = scanner.next();
 			curr = curr.trim();
 			String[] pair = curr.split("\\s", 2);
-			//System.out.println(pair[0] + " " + pair[1]);
 			if (command.equals("save"))
 				break;
-			if (command.equals("query"))
+			// TODO: handle date between
+			if (command.equals("query") && (pair.length == 1)) {
+				//System.out.println(attributeValuePairs);
+				//attributeValuePairs.put("date", pair[0]);
 				break;
+			}
 			attributeValuePairs.put(pair[0], pair[1]);
 		}
 		scanner.close();
