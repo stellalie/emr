@@ -53,67 +53,55 @@ public class Patient {
 	}
 
 	public String toString() {
+		String format = "%-20s %-40s %n";
 		String s = "";
-		s += String.format("%-20s %-40s %n", "patientID", id);
-		s += this.toStringName();
-		s += this.toStringBirthday();
-		s += this.toStringPhone();
-		s += this.toStringEmail();
-		s += this.toStringAddress();
-		s += this.toStringMedicalHistory();
+		s += String.format(format, "patientID", id);
+		s += this.toStringName(format);
+		s += this.toStringBirthday(format);
+		s += this.toStringPhone(format);
+		s += this.toStringEmail(format);
+		s += this.toStringAddress(format);
+		s += this.toStringMedicalHistory(format);
 		return s;
 	}
-
-	private String toStringName() {
+	
+	private String toStringName(String format) {
 		if (name == null) return "";
-		return String.format("%-20s %-40s %n", "name", name);
+		return String.format(format, "name", name);
 	}
 
-	private String toStringBirthday() {
+	private String toStringBirthday(String format) {
 		if (birthday == null) return "";
-		return String.format("%-20s %-40s %n", "birthday",
-				EMRUtil.dateToStringBirthday(birthday));
+		return String.format(format, "birthday", EMRUtil.dateToStringBirthday(birthday));
 	}
 
-	private String toStringPhone() {
+	private String toStringPhone(String format) {
 		if (phone == -1) return "";
-		return String.format("%-20s %-40s %n", "phone", phone);
+		return String.format(format, "phone", phone);
 	}
 
-	private String toStringAddress() {
+	private String toStringAddress(String format) {
 		if (address == null) return "";
-		String s = "";
-		boolean firstLine = true;
-		String[] lines = address.split("\\r?\\n");
-		for (int i = 0; i < lines.length; i++) {
-			if (firstLine) {
-				s += String
-						.format("%-20s %-40s %n", "address", lines[i].trim());
-				firstLine = false;
-			} else {
-				s += String.format("%-20s %-40s %n", "", lines[i].trim());
-			}
-		}
-		return s;
+		return String.format(format, "address", address.replaceAll("\n", " "));
 	}
 
-	private String toStringEmail() {
+	private String toStringEmail(String format) {
 		if (email == null) return "";
-		return String.format("%-20s %-40s %n", "email", email);
+		return String.format(format, "email", email);
 	}
 
-	private String toStringMedicalHistory() {
+	private String toStringMedicalHistory(String format) {
 		if (medicalHistory.size() == 0)
-			return String.format("%-20s %-40s %n", "medicalHistory", "None");
+			return String.format(format, "medicalHistory", "None");
 		String s = "";
 		boolean firstLine = true;
 		for (Diagnosis d : medicalHistory) {
 			if (firstLine) {
-				s += String.format("%-20s %-40s %n", "medicalHistory",
+				s += String.format(format, "medicalHistory",
 						d.toString());
 				firstLine = false;
 			} else {
-				s += String.format("%-20s %-40s %n", "", d.toString());
+				s += String.format(format, "", d.toString());
 			}
 		}
 		return s;
