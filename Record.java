@@ -64,14 +64,12 @@ public class Record {
 		if (instructionData.get(Attribute.NAME) != null)
 			this.appendQueryResult(this.findPatient(
 					instructionData.get(Attribute.NAME), records), rawData);
-
-		// Query by birthday
+ 		// Query by birthday
 		if (instructionData.get(Attribute.BIRTHDAY) != null) {
 			Date birthday = EMRUtil.stringToDate(instructionData
 					.get(Attribute.BIRTHDAY));
 			this.appendQueryResult(this.findPatient(birthday, records), rawData);
 		}
-
 		// Query by id
 		if (instructionData.get(Attribute.PATIENTID) != null) {
 			int id = Integer.parseInt(instructionData.get(Attribute.PATIENTID));
@@ -111,7 +109,7 @@ public class Record {
 			int id = Integer.parseInt(instructionData.get(Attribute.PATIENTID));
 			records.remove(this.findPatient(id, records));
 
-			// Delete by name & birthday
+		// Delete by name & birthday
 		} else if (instructionData.get(Attribute.NAME) != null
 				&& instructionData.get(Attribute.BIRTHDAY) != null) {
 			String name = instructionData.get(Attribute.NAME);
@@ -312,7 +310,7 @@ public class Record {
 		scanner.close();
 		return diagnoses;
 	}
-
+	
 	private Map<String, String> readPatientRecord(String record) {
 		Map<String, String> attributeValuePairs = new HashMap<String, String>();
 		String attribute = "", value = "";
