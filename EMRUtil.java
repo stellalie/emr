@@ -40,9 +40,9 @@ public class EMRUtil {
 		if (s == null)
 			return false;
 		try {
-			SimpleDateFormat format = new SimpleDateFormat(s);
-			format.setLenient(false);
-			format.parse(s);
+			SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy", Locale.ENGLISH);
+			sdf.setLenient(false);
+			sdf.parse(s);
 			return true;
 		} catch (Exception e) {
 			return false;
@@ -58,7 +58,7 @@ public class EMRUtil {
 	}
 
 	public static String dateToStringDiagnosis(Date date) {
-		return new SimpleDateFormat("dd-M-yyyy", Locale.ENGLISH).format(date);
+		return new SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH).format(date);
 	}
 
 	public static boolean wordIsAttribute(String word) {
