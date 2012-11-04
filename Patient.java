@@ -51,53 +51,74 @@ public class Patient {
 			}
 		});
 	}
-
+	
 	public String toString() {
+		return this.toString(null, null);
+	}
+
+	public String toString(Date start, Date end) {
 		String format = "%-20s %-40s %n";
 		String s = "";
-		s += String.format(format, "patientID", id);
+		s += String.format(format, Attribute.PATIENTID, id);
 		s += this.toStringName(format);
 		s += this.toStringBirthday(format);
 		s += this.toStringPhone(format);
 		s += this.toStringEmail(format);
 		s += this.toStringAddress(format);
-		s += this.toStringMedicalHistory(format);
+		s += this.toStringMedicalHistory(format, start, end);
 		return s;
 	}
 	
 	private String toStringName(String format) {
 		if (name == null) return "";
-		return String.format(format, "name", name);
+		return String.format(format, Attribute.NAME, name);
 	}
 
 	private String toStringBirthday(String format) {
 		if (birthday == null) return "";
-		return String.format(format, "birthday", EMRUtil.dateToStringBirthday(birthday));
+		return String.format(format, Attribute.BIRTHDAY, EMRUtil.dateToStringBirthday(birthday));
 	}
 
 	private String toStringPhone(String format) {
 		if (phone == -1) return "";
-		return String.format(format, "phone", phone);
+		return String.format(format, Attribute.PHONE, phone);
 	}
 
 	private String toStringAddress(String format) {
 		if (address == null) return "";
-		return String.format(format, "address", address.replaceAll("\n", " "));
+		return String.format(format, Attribute.ADDRESS, address.replaceAll("\n", " "));
 	}
 
 	private String toStringEmail(String format) {
 		if (email == null) return "";
-		return String.format(format, "email", email);
+		return String.format(format, Attribute.EMAIL, email);
+	}
+	
+	public LinkedList<Diagnosis> getMedicalHistory(Date start, Date end) { 
+		LinkedList<Diagnosis> diagnoses = new LinkedList<Diagnosis>();
+		if (start == null && end == null) {
+			diagnoses = this.medicalHistory;
+		} else {
+			for (Diagnosis d: medicalHistory) {
+				if (d.getDate().after(start) && d.getDate().before(end)) {
+					diagnoses.add(d);
+				}
+			}
+		}
+		return diagnoses;
 	}
 
-	private String toStringMedicalHistory(String format) {
-		if (medicalHistory.size() == 0)
-			return String.format(format, "medicalHistory", "None");
+	private String toStringMedicalHistory(String format, Date start, Date end) {
+		LinkedList<Diagnosis> diagnoses = this.getMedicalHistory(start, end);
+		
+		if (diagnoses.size() == 0)
+			return String.format(format, Attribute.MEDICALHISTORY, "None");
+		
 		String s = "";
 		boolean firstLine = true;
-		for (Diagnosis d : medicalHistory) {
+		for (Diagnosis d : diagnoses) {
 			if (firstLine) {
-				s += String.format(format, "medicalHistory",
+				s += String.format(format, Attribute.MEDICALHISTORY,
 						d.toString());
 				firstLine = false;
 			} else {

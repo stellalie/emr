@@ -59,13 +59,13 @@ public class Record {
 		// Query by name
 		if (instructionData.get(Attribute.NAME) != null)
 			this.appendQueryResult(this.findPatient(
-					instructionData.get(Attribute.NAME), records), rawData);
+					instructionData.get(Attribute.NAME), records), instructionData);
  		
 		// Query by birthday
 		if (instructionData.get(Attribute.BIRTHDAY) != null) {
 			Date birthday = EMRUtil.stringToDate(instructionData
 					.get(Attribute.BIRTHDAY));
-			this.appendQueryResult(this.findPatient(birthday, records), rawData);
+			this.appendQueryResult(this.findPatient(birthday, records), instructionData);
 		}
 		
 		// Query by id
@@ -75,29 +75,55 @@ public class Record {
 				LinkedList<Patient> results = new LinkedList<Patient>();
 				System.out.println();
 				results.add(this.findPatient(id, records));
-				this.appendQueryResult(results, rawData);
+				this.appendQueryResult(results, instructionData);
 			}
 		}
 	}
 
-	private void appendQueryResult(LinkedList<Patient> results, String rawData) {
+	private void appendQueryResult(LinkedList<Patient> results, 
+			Map<String, String> instructionData) {
 		try {
 			PrintWriter out = new PrintWriter(new FileWriter(this.reportFile,
 					true));
-			out.println("---------------------  " + "query " + rawData
-					+ "  ---------------------");
-			out.println();
-			for (Patient p : results) {
-				out.println(p.toString());
+
+			// Print query results
+			// Print if there are date limits on medical history
+			if ((instructionData.get("start") != null) && (instructionData.get("end") != null)) {
+				Date start = EMRUtil.stringToDate(instructionData.get("start"));
+				Date end = EMRUtil.stringToDate(instructionData.get("end"));
+				// Print only if date limits are valid and end date is not earlier than start date
+				if (start.before(end)) for (Patient p : results) {
+					out.println(this.getQueryResultHeader(instructionData));
+					out.println(p.toString(start, end));
+					out.println(this.getQueryResultFooter(instructionData));
+				}
+			// Print if no date limits on medical history
+			} else {
+				out.println(this.getQueryResultHeader(instructionData));
+				for (Patient p : results) out.println(p.toString());
+				out.println(this.getQueryResultFooter(instructionData));
 			}
-			out.println();
-			out.println("---------------------- end of query ----------------------");
-			out.println();
-			out.println();
+			
 			out.close();
 		} catch (Exception e) {
 			System.out.println("Report file not found!");
 		}
+	}
+	
+	private String getQueryResultHeader(Map<String, String> instructionData) {
+		String s = "";
+		s += "---------------------  " + "query " + instructionData 
+				+ "  ---------------------\n";
+		return s;
+	}
+	
+	private String getQueryResultFooter(Map<String, String> instructionData) {
+		String s = "";
+		s += "---------------------- end of query ----------------------\n";
+		s += " \n";
+		s += " \n";
+		s += " \n";
+		return s;
 	}
 
 	private void executeDelete(Map<String, String> instructionData,
@@ -164,7 +190,6 @@ public class Record {
 			}
 			if (scanner.hasNext()) attributeValuePairs.put("start", scanner.next().trim());
 			if (scanner.hasNext()) attributeValuePairs.put("end", scanner.next().trim());
-			System.out.println(attributeValuePairs);
 		}
 		scanner.close();
 		return attributeValuePairs;
@@ -182,13 +207,6 @@ public class Record {
 			out.close();
 		} catch (FileNotFoundException e) {
 			System.out.println("Output file not found!");
-		}
-	}
-
-	private void print() {
-		for (Patient p : patients) {
-			System.out.println(p.toString());
-			System.out.println();
 		}
 	}
 
