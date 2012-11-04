@@ -32,10 +32,10 @@ public class EMRUtil {
 	}
 
 	public static boolean dateIsValid(String s) {
-		if (s == null)
-			return false;
+		if (s == null) return false;
+		if (!s.matches("\\d{1,2}-\\d{1,2}-\\d{4}")) return false;
 		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy", Locale.ENGLISH);
+			SimpleDateFormat sdf = new SimpleDateFormat("d-M-y", Locale.ENGLISH);
 			sdf.setLenient(false);
 			sdf.parse(s);
 			return true;
