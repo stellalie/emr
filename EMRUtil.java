@@ -38,10 +38,8 @@ public class EMRUtil {
 			SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy", Locale.ENGLISH);
 			sdf.setLenient(false);
 			sdf.parse(s);
-			System.out.println("VALID " + s);
 			return true;
 		} catch (Exception e) {
-			System.out.println("INVALID " + s);
 			return false;
 		}
 	}
