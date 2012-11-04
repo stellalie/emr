@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 public class Record {
 	private LinkedList<Patient> patients = new LinkedList<Patient>();
 	private File reportFile;
+	private int lastUsedId = 0;
 
 	public Record(File medicalRecordFile, File instructionFile,
 			File outputFile, File reportFile) throws FileNotFoundException,
@@ -121,22 +122,19 @@ public class Record {
 
 	private void executeAdd(Map<String, String> instructionData,
 			LinkedList<Patient> records) throws ParseException {
-		// Assuming all data correct & exists, might need data validation here
 		String name = instructionData.get(Attribute.NAME);
 		Date birthday = EMRUtil.stringToDate(instructionData.get(Attribute.BIRTHDAY));
-		int phone = -1;
-		if (instructionData.get(Attribute.PHONE) != null) 
-			phone = Integer.parseInt(instructionData.get(Attribute.PHONE));
+		int phone = EMRUtil.validPhone(instructionData.get(Attribute.PHONE));
 		String address = instructionData.get(Attribute.ADDRESS);
-		String email = instructionData.get(Attribute.EMAIL);
+		String email = EMRUtil.validEmail(instructionData.get(Attribute.EMAIL));
 		String medicalHistory = instructionData.get(Attribute.MEDICALHISTORY);
 		
 		Patient patient = findPatient(name, birthday, records);
 		// Patient does not already exist
-		if (patient == null)
-			records.add(createPatient(instructionData));
-		else {
-			// Patient already exists.
+		if (patient == null) {
+			if (this.validPatientRecord(instructionData)) records.add(this.createPatient(instructionData));
+		} else {
+			// Patient already exists
 			if (phone != -1) patient.setPhone(phone);
 			if (address != null) patient.setAddress(address);
 			if (email != null) patient.setEmail(email);
@@ -232,15 +230,9 @@ public class Record {
 	private Patient createPatient(Map<String, String> attributeValuePairs)
 			throws java.text.ParseException {
 		// Set and validate email, if invalid make null
-		String email = attributeValuePairs.get(Attribute.EMAIL);
-		if (!EMRUtil.emailIsValid(attributeValuePairs.get(Attribute.EMAIL)))
-			email = null;
+		String email = EMRUtil.validEmail(attributeValuePairs.get(Attribute.EMAIL));
 		// Set and validate phone, if invalid make -1
-		int phone = -1;
-		if (!EMRUtil.phoneIsValid(attributeValuePairs.get(Attribute.PHONE)))
-			phone = -1;
-		else
-			phone = Integer.parseInt(attributeValuePairs.get(Attribute.PHONE));
+		int phone = EMRUtil.validPhone(attributeValuePairs.get(Attribute.PHONE));
 		// Set other fields
 		String name = attributeValuePairs.get(Attribute.NAME);
 		Date birthday = EMRUtil.stringToDate(attributeValuePairs
@@ -248,8 +240,10 @@ public class Record {
 		String address = attributeValuePairs.get(Attribute.ADDRESS);
 		LinkedList<Diagnosis> medicalHistory = readMedicalHistory(attributeValuePairs
 				.get(Attribute.MEDICALHISTORY));
-
-		return new Patient(name, birthday, phone, address, email,
+		
+		// Update lastUsedId count and return the new patient
+		this.lastUsedId++;
+		return new Patient(this.lastUsedId, name, birthday, phone, address, email,
 				medicalHistory);
 	}
 
@@ -330,5 +324,4 @@ public class Record {
 		scanner.close();
 		return attributeValuePairs;
 	}
-
 }

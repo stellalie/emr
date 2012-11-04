@@ -9,12 +9,19 @@ public class EMRUtil {
 	public static String[] attributes = { Attribute.NAME, Attribute.PATIENTID,
 		Attribute.BIRTHDAY, Attribute.PHONE, Attribute.EMAIL,
 		Attribute.MEDICALHISTORY, Attribute.ADDRESS, "medicalHistory" };
-	public static int lastUsedId = 0;
 
-	public static boolean phoneIsValid(String s) {
-		if (s == null)
-			return false;
-		return s.matches("-?\\d+(\\.\\d+)?");
+	public static int validPhone(String s) {
+		if (s == null) return -1;
+		if (!s.matches("-?\\d+(\\.\\d+)?")) return -1;
+		return Integer.parseInt(s);
+	}
+	
+	public static String validEmail(String s) {
+		if (s == null) return null;
+		if (!(s.contains(" ") == false && s.matches(".+@.+\\.[a-z]+"))) return null;
+		if ((s.length() - s.replaceAll("\\@", "").length()) != 1) return null;
+		if ((s.length() - s.replaceAll("\\.", "").length()) != 1) return null;
+		return s;
 	}
 
 	public static boolean nameIsValid(String s) {
@@ -24,18 +31,6 @@ public class EMRUtil {
 		// return s.matches(".+@.+\\.[a-z]+");
 	}
 
-	public static boolean emailIsValid(String s) {
-		if (s == null)
-			return false;
-		if (!(s.contains(" ") == false && s.matches(".+@.+\\.[a-z]+")))
-			return false;
-		if ((s.length() - s.replaceAll("\\@", "").length()) != 1)
-			return false;
-		if ((s.length() - s.replaceAll("\\.", "").length()) != 1)
-			return false;
-		return true;
-	}
-
 	public static boolean dateIsValid(String s) {
 		if (s == null)
 			return false;
@@ -43,8 +38,10 @@ public class EMRUtil {
 			SimpleDateFormat sdf = new SimpleDateFormat("d-M-yyyy", Locale.ENGLISH);
 			sdf.setLenient(false);
 			sdf.parse(s);
+			System.out.println("VALID " + s);
 			return true;
 		} catch (Exception e) {
+			System.out.println("INVALID " + s);
 			return false;
 		}
 	}
@@ -75,10 +72,5 @@ public class EMRUtil {
 				return true;
 		}
 		return false;
-	}
-
-	public static int generatePatientId() {
-		EMRUtil.lastUsedId++;
-		return EMRUtil.lastUsedId;
 	}
 }

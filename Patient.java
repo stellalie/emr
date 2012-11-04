@@ -11,9 +11,9 @@ public class Patient {
     private String email;
     private LinkedList<Diagnosis> medicalHistory; 
 
-    public Patient(String name, Date birthday, int phone, String address, 
+    public Patient(int id, String name, Date birthday, int phone, String address, 
     		String email, LinkedList<Diagnosis>medicalHistory) {
-        this.id = EMRUtil.generatePatientId();
+        this.id = id;
         this.name = name;
         this.birthday = birthday;
         this.phone = phone;
