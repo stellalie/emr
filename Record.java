@@ -14,6 +14,7 @@ public class Record
    		throws FileNotFoundException, java.text.ParseException
    {
       LinkedList<Patient> records = createPatientRecord(medicalRecordFile);
+      if (reportFile.exists()) reportFile.delete();
       this.reportFile = reportFile;
       this.executeInstructions(instructionFile, records);
       this.printOutput(outputFile);
@@ -60,23 +61,24 @@ public class Record
    private void executeQuery(String rawData, Map<String, String> instructionData, LinkedList<Patient> records)
    		throws java.text.ParseException
    {
-   	// query by name
+   	// Query by name
    	if (instructionData.get(Attribute.NAME) != null)
    		this.appendQueryResult(this.findPatient(instructionData.get(Attribute.NAME), records), rawData);
    	
-   	// query by birthday
+   	// Query by birthday
    	if (instructionData.get(Attribute.BIRTHDAY) != null)
    	{
    		Date birthday = EMRUtil.stringToDate(instructionData.get(Attribute.BIRTHDAY));
    		this.appendQueryResult(this.findPatient(birthday, records), rawData);
    	}
    	
-   	// query by id
+   	// Query by id
    	if (instructionData.get(Attribute.PATIENTID) != null) 
    	{
    		int id = Integer.parseInt(instructionData.get(Attribute.PATIENTID));
    		if (this.findPatient(id, records) != null) {
    			LinkedList<Patient> results = new LinkedList<Patient>();
+   			System.out.println();
    			results.add(this.findPatient(id, records));
    			this.appendQueryResult(results, rawData);
    		}
@@ -86,11 +88,16 @@ public class Record
    private void appendQueryResult(LinkedList<Patient> results, String rawData)
    {
    	try {
-	   	PrintWriter out = new PrintWriter(new FileOutputStream(this.reportFile), true);
-	   	System.out.println(rawData);
+	   	PrintWriter out = new PrintWriter(new FileWriter(this.reportFile, true));
+	   	out.println("-----------------  " + "query " + rawData + "  -----------------");
+	   	out.println();
 	   	for (Patient p: results) {
 	   		out.println(p.toString());
 	   	}
+	   	out.println();
+	   	out.println("---------------------- end of query ----------------------");
+	   	out.println();
+	   	out.println();
 	   	out.close();
    	} catch (Exception e) {
    		System.out.println("Report file not found!");
@@ -100,12 +107,12 @@ public class Record
    private void executeDelete(Map<String, String> instructionData, LinkedList<Patient> records) 
    		throws java.text.ParseException
    {
-   	// delete by id
+   	// Delete by id
    	if (instructionData.get(Attribute.PATIENTID) != null) {
    		int id = Integer.parseInt(instructionData.get(Attribute.PATIENTID)); 
    		records.remove(this.findPatient(id, records));
    		
-   	// delete by name & birthday
+   	// Delete by name & birthday
    	} else if (instructionData.get(Attribute.NAME) != null 
    			&& instructionData.get(Attribute.BIRTHDAY) !=null) {
    		String name = instructionData.get(Attribute.NAME);
@@ -117,7 +124,7 @@ public class Record
    private void executeAdd(Map<String, String> instructionData, LinkedList<Patient> records) 
    		throws ParseException
    {
-   	// assuming all data correct & exists, might need data validation here
+   	// Assuming all data correct & exists, might need data validation here
       Patient tempPatient = createPatient(instructionData);
       Patient patient = findPatient(tempPatient.getName(), tempPatient.getBirthday(), records);
       
@@ -128,7 +135,6 @@ public class Record
       {
          // Patient already exists. 
          EMRUtil.lastUsedId--;
-
          records.get(records.indexOf(patient)).setPhone(tempPatient.getPhone());
          records.get(records.indexOf(patient)).setAddress(tempPatient.getAddress());
          records.get(records.indexOf(patient)).setEmail(tempPatient.getEmail());
