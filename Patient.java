@@ -11,7 +11,8 @@ public class Patient {
     private String email;
     private LinkedList<Diagnosis> medicalHistory; 
 
-    public Patient(String name, Date birthday, int phone, String address, String email, LinkedList<Diagnosis>medicalHistory) {
+    public Patient(String name, Date birthday, int phone, String address, 
+    		String email, LinkedList<Diagnosis>medicalHistory) {
         this.id = EMRUtil.generatePatientId();
         this.name = name;
         this.birthday = birthday;
@@ -37,81 +38,84 @@ public class Patient {
     public String getEmail() { return this.email; }
     public LinkedList<Diagnosis> getMedicalHistory() { return this.medicalHistory; }
     
-    public void addDiagnoses(LinkedList<Diagnosis> diagnoses) {
-        this.medicalHistory.addAll(diagnoses);
-        this.sortMedicalHistory();
-    }
-    
-    private void sortMedicalHistory() {
-   	  Collections.sort(this.medicalHistory, new Comparator<Diagnosis>() {
-   		  @Override
-   		  public int compare(Diagnosis d1, Diagnosis d2) {
-   			  return d1.getDate().compareTo(d2.getDate()); 
-          }
-   	 });
-    }
-    
-    public String toString() {
-        String s = ""; 
-        s += String.format("%-20s %-40s %n", "patientID", id);
-        s += this.toStringName();
-        s += this.toStringBirthday();
-        s += this.toStringPhone();
-        s += this.toStringEmail();
-        s += this.toStringAddress();
-        s += this.toStringMedicalHistory();
-        return s;
-    }
-    
-    private String toStringName() {
-        if (name == null) return "";
-        return String.format("%-20s %-40s %n", "name", name);
-    }
-    
-    private String toStringBirthday() {
-        if (birthday == null) return "";
-        return String.format("%-20s %-40s %n", "birthday", EMRUtil.dateToStringBirthday(birthday));
-    }
-    
-    private String toStringPhone() {
-        if (phone == -1) return "";
-        return String.format("%-20s %-40s %n", "phone", phone);
-    }
-    
-    private String toStringAddress() {
-        if (address == null) return "";
-        String s = "";
-        boolean firstLine = true;
-        String[] lines = address.split("\\r?\\n");
-        for (int i = 0; i < lines.length; i++) {
-            if (firstLine) {
-                s += String.format("%-20s %-40s %n", "address", lines[i].trim());
-                firstLine = false;
-            } else {
-                s += String.format("%-20s %-40s %n", "", lines[i].trim());
-            }
-        }
-        return s;
-    }
-    
-    private String toStringEmail() {
-        if (email == null) return "";
-        return String.format("%-20s %-40s %n", "email", email);
-    }
-    
-    private String toStringMedicalHistory() {
-        if (medicalHistory.size() == 0) 
-      	  return String.format("%-20s %-40s %n", "medicalHistory", "None");
-        String s = "";
-        boolean firstLine = true;
-        for (Diagnosis d: medicalHistory) {
-            if (firstLine) {
-                s += String.format("%-20s %-40s %n", "medicalHistory", d.toString());
-                firstLine = false;
-            } else {
-                s += String.format("%-20s %-40s %n", "", d.toString());
-            }
-        }
-        return s;
-    }
+	public void addDiagnoses(LinkedList<Diagnosis> diagnoses) {
+		this.medicalHistory.addAll(diagnoses);
+		this.sortMedicalHistory();
+	}
+
+	private void sortMedicalHistory() {
+		Collections.sort(this.medicalHistory, new Comparator<Diagnosis>() {
+			@Override
+			public int compare(Diagnosis d1, Diagnosis d2) {
+				return d1.getDate().compareTo(d2.getDate());
+			}
+		});
+	}
+
+	public String toString() {
+		String s = "";
+		s += String.format("%-20s %-40s %n", "patientID", id);
+		s += this.toStringName();
+		s += this.toStringBirthday();
+		s += this.toStringPhone();
+		s += this.toStringEmail();
+		s += this.toStringAddress();
+		s += this.toStringMedicalHistory();
+		return s;
+	}
+
+	private String toStringName() {
+		if (name == null) return "";
+		return String.format("%-20s %-40s %n", "name", name);
+	}
+
+	private String toStringBirthday() {
+		if (birthday == null) return "";
+		return String.format("%-20s %-40s %n", "birthday",
+				EMRUtil.dateToStringBirthday(birthday));
+	}
+
+	private String toStringPhone() {
+		if (phone == -1) return "";
+		return String.format("%-20s %-40s %n", "phone", phone);
+	}
+
+	private String toStringAddress() {
+		if (address == null) return "";
+		String s = "";
+		boolean firstLine = true;
+		String[] lines = address.split("\\r?\\n");
+		for (int i = 0; i < lines.length; i++) {
+			if (firstLine) {
+				s += String
+						.format("%-20s %-40s %n", "address", lines[i].trim());
+				firstLine = false;
+			} else {
+				s += String.format("%-20s %-40s %n", "", lines[i].trim());
+			}
+		}
+		return s;
+	}
+
+	private String toStringEmail() {
+		if (email == null) return "";
+		return String.format("%-20s %-40s %n", "email", email);
+	}
+
+	private String toStringMedicalHistory() {
+		if (medicalHistory.size() == 0)
+			return String.format("%-20s %-40s %n", "medicalHistory", "None");
+		String s = "";
+		boolean firstLine = true;
+		for (Diagnosis d : medicalHistory) {
+			if (firstLine) {
+				s += String.format("%-20s %-40s %n", "medicalHistory",
+						d.toString());
+				firstLine = false;
+			} else {
+				s += String.format("%-20s %-40s %n", "", d.toString());
+			}
+		}
+		return s;
+	}
 }
