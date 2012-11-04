@@ -80,8 +80,7 @@ public class Record {
 	private void appendQueryResult(LinkedList<Patient> results, File reportFile,
 			Map<String, String> instructionData) {
 		try {
-			PrintWriter out = new PrintWriter(new FileWriter(reportFile,
-					true));
+			PrintWriter out = new PrintWriter(new FileWriter(reportFile, true));
 			out.print(this.getQueryResult(results, instructionData));
 			out.close();
 		} catch (Exception e) {
@@ -275,7 +274,7 @@ public class Record {
 		// Set fields with assumptions data is valid
 		String email = EMRUtil.validEmail(attributeValuePairs.get(Attribute.EMAIL));
 		int phone = EMRUtil.validPhone(attributeValuePairs.get(Attribute.PHONE));
-		String name = attributeValuePairs.get(Attribute.NAME);
+		String name = EMRUtil.validName(attributeValuePairs.get(Attribute.NAME));
 		Date birthday = EMRUtil.stringToDate(attributeValuePairs
 				.get(Attribute.BIRTHDAY));
 		String address = attributeValuePairs.get(Attribute.ADDRESS);

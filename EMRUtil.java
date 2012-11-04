@@ -8,8 +8,8 @@ import java.util.regex.Pattern;
 public class EMRUtil {
 	public static String[] attributes = { Attribute.NAME, Attribute.PATIENTID,
 		Attribute.BIRTHDAY, Attribute.PHONE, Attribute.EMAIL,
-		Attribute.MEDICALHISTORY, Attribute.ADDRESS, "medicalHistory" };
-
+		Attribute.MEDICALHISTORY, Attribute.ADDRESS };
+	
 	public static int validPhone(String s) {
 		if (s == null) return -1;
 		if (!s.matches("-?\\d+(\\.\\d+)?")) return -1;
@@ -23,12 +23,16 @@ public class EMRUtil {
 		if ((s.length() - s.replaceAll("\\.", "").length()) != 1) return null;
 		return s;
 	}
+	
+	public static String validName(String s) {
+		if (s == null) throw new NullPointerException();
+		return s.split("\n")[0];
+	}
 
 	public static boolean nameIsValid(String s) {
-		// TODO: name validation
 		if (s == null) return false;
+		if (s.matches(".*\\d.*")) return false;
 		return true;
-		// return s.matches(".+@.+\\.[a-z]+");
 	}
 
 	public static boolean dateIsValid(String s) {
