@@ -1,9 +1,5 @@
-import java.io.*;
 import java.util.*;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.text.ParsePosition;
-import java.util.regex.Pattern;
 
 public class EMRUtil {
 	public static String[] attributes = { Attribute.NAME, Attribute.PATIENTID,
