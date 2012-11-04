@@ -19,7 +19,7 @@ public class Record {
 		this.reportFile = reportFile;
 		this.executeInstructions(instructionFile, records);
 		this.printOutput(outputFile);
-		// print();
+		//print();
 	}
 
 	private void executeInstructions(File instructionFile,
@@ -42,16 +42,11 @@ public class Record {
 	private void execute(String command, String rawData,
 			Map<String, String> data, LinkedList<Patient> records)
 			throws java.text.ParseException {
-		if (command.equals(Command.SAVE))
-			executeSave(records);
-		else if (command.equals(Command.QUERY))
-			executeQuery(rawData, data, records);
-		else if (command.equals(Command.ADD))
-			executeAdd(data, records);
-		else if (command.equals(Command.DELETE))
-			executeDelete(data, records);
-		else
-			System.out.println("Invalid command");
+		if (command.equals(Command.SAVE)) executeSave(records);
+		else if (command.equals(Command.QUERY)) executeQuery(rawData, data, records);
+		else if (command.equals(Command.ADD)) executeAdd(data, records);
+		else if (command.equals(Command.DELETE)) executeDelete(data, records);
+		else System.out.println("Invalid command!");
 	}
 
 	private void executeSave(LinkedList<Patient> records) {
