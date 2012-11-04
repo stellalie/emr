@@ -34,28 +34,45 @@ public class EMRUtil {
    	 if (s == null)
    		 return false;
    	 try {
+   		 if (EMRUtil.dateIsSimpleValid(s)) {
+   			 /*
+   			 Date date = new SimpleDateFormat("dd-mm-yyyy", Locale.ENGLISH).parse(s);
+   			 Calendar calendar = Calendar.getInstance();
+   			 calendar.setTime(date);
+   			 System.out.println(date);
+   			 System.out.println(calendar.get(Calendar.MONTH) + " " + calendar.get(Calendar.DATE));
+   			 if (calendar.get(Calendar.MONTH) > 12 || calendar.get(Calendar.MONTH) < 1) return false;
+      		 if (calendar.get(Calendar.DATE) > 31 || calendar.get(Calendar.DATE) < 1) return false;
+      		 */
+      		 return true;
+   		 }
+   		 return false;
+   	 } catch (Exception e) {
+   		 return false;
+   	 }
+    }
+    
+    public static boolean dateIsSimpleValid(String s) {
+   	 try {
    		 SimpleDateFormat format = new SimpleDateFormat(s);
    		 format.setLenient(false);
    		 format.parse(s);
-   		 //Date date = new SimpleDateFormat("dd-mm-yyyy", Locale.ENGLISH).parse(s);
-   		 //System.out.println(s + " " + date + " is pass");
    		 return true;
    	 } catch (Exception e) {
-   		 //System.out.println(s +" is FAIL");
    		 return false;
    	 }
     }
 
     public static Date stringToDate(String s) throws java.text.ParseException {
-        return new SimpleDateFormat("dd-mm-yyyy", Locale.ENGLISH).parse(s);
+        return new SimpleDateFormat("d-M-yyyy", Locale.ENGLISH).parse(s);
     }
     
     public static String dateToStringBirthday(Date date) {
-        return new SimpleDateFormat("d-m-yyyy", Locale.ENGLISH).format(date);
+        return new SimpleDateFormat("d-M-yyyy", Locale.ENGLISH).format(date);
     }
     
     public static String dateToStringDiagnosis(Date date) {
-        return new SimpleDateFormat("dd-mm-yyyy", Locale.ENGLISH).format(date);
+        return new SimpleDateFormat("dd-M-yyyy", Locale.ENGLISH).format(date);
     }
     
     public static boolean wordIsAttribute(String word) {
