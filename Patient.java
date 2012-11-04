@@ -1,5 +1,6 @@
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.*;
 
 public class Patient {
     private final int id;
@@ -19,6 +20,7 @@ public class Patient {
         this.email = email;
         if (medicalHistory == null) this.medicalHistory = new LinkedList<Diagnosis>();
         else this.medicalHistory = medicalHistory;
+        this.sortMedicalHistory();
     }
     
     public void setName(String name) { this.name = name; }
@@ -33,10 +35,20 @@ public class Patient {
     public int getPhone() { return this.phone; }
     public String getAddress() { return this.address; }
     public String getEmail() { return this.email; }
-    public LinkedList<Diagnosis> getMedicalHistory() {return this.medicalHistory; }
+    public LinkedList<Diagnosis> getMedicalHistory() { return this.medicalHistory; }
     
     public void addDiagnoses(LinkedList<Diagnosis> diagnoses) {
         this.medicalHistory.addAll(diagnoses);
+        this.sortMedicalHistory();
+    }
+    
+    private void sortMedicalHistory() {
+   	  Collections.sort(this.medicalHistory, new Comparator<Diagnosis>() {
+   		  @Override
+   		  public int compare(Diagnosis d1, Diagnosis d2) {
+   			  return d1.getDate().compareTo(d2.getDate()); 
+          }
+   	 });
     }
     
     public String toString() {
