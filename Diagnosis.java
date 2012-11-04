@@ -1,5 +1,11 @@
 import java.util.Date;
 
+/**
+ * Represents a single diagnosis as part of Patient's medical history. 
+ * @author VG
+ *
+ */
+
 public class Diagnosis {
 	Date date;
 	String information;

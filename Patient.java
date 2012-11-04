@@ -2,6 +2,12 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.*;
 
+/**
+ * This class contains patient's data for EMR. An EMR record may contains
+ * many patients.
+ * @author VG
+ *
+ */
 public class Patient {
     private final int id;
     private String name;
@@ -9,8 +15,18 @@ public class Patient {
     private int phone;
     private String address;
     private String email;
-    private LinkedList<Diagnosis> medicalHistory; 
-
+    private LinkedList<Diagnosis> medicalHistory = new LinkedList<Diagnosis>(); 
+    
+    /**
+     * Constructor for patient class.
+     * @param id Patient's unique ID
+     * @param name Patient's name
+     * @param birthday Patient's birthday
+     * @param phone Patient's phone
+     * @param address Patient's address
+     * @param email Patient's email
+     * @param medicalHistory Patient's list of diagnosis
+     */
     public Patient(int id, String name, Date birthday, int phone, String address, 
     		String email, LinkedList<Diagnosis>medicalHistory) {
         this.id = id;
@@ -19,9 +35,7 @@ public class Patient {
         this.phone = phone;
         this.address = address;
         this.email = email;
-        if (medicalHistory == null) this.medicalHistory = new LinkedList<Diagnosis>();
-        else this.medicalHistory = medicalHistory;
-        this.sortMedicalHistory();
+        if (medicalHistory != null) this.addDiagnoses(medicalHistory);
     }
     
     public void setName(String name) { this.name = name; }
@@ -38,11 +52,39 @@ public class Patient {
     public String getEmail() { return this.email; }
     public LinkedList<Diagnosis> getMedicalHistory() { return this.medicalHistory; }
     
+    /**
+     * Get a list of Diagnosis during the given time period
+     * @param start
+     * @param end
+     * @return
+     */
+	public LinkedList<Diagnosis> getMedicalHistory(Date start, Date end) { 
+		LinkedList<Diagnosis> diagnoses = new LinkedList<Diagnosis>();
+		if (start == null && end == null) {
+			diagnoses = this.medicalHistory;
+		} else {
+			for (Diagnosis d: medicalHistory) {
+				if (d.getDate().after(start) && d.getDate().before(end)) {
+					diagnoses.add(d);
+				}
+			}
+		}
+		return diagnoses;
+	}
+	
+    /**
+     * Append diagnoses to Patient's existing medical history. Sort Patient's
+     * medical history afterwards.
+     * @param diagnoses List of diagnosis
+     */
 	public void addDiagnoses(LinkedList<Diagnosis> diagnoses) {
 		this.medicalHistory.addAll(diagnoses);
 		this.sortMedicalHistory();
 	}
-
+	
+	/**
+	 * Sort Patient's medical history ascending by date
+	 */
 	private void sortMedicalHistory() {
 		Collections.sort(this.medicalHistory, new Comparator<Diagnosis>() {
 			@Override
@@ -52,10 +94,19 @@ public class Patient {
 		});
 	}
 	
+	/**
+	 * Default toString() method. Print all Patient's details. 
+	 */
 	public String toString() {
 		return this.toString(null, null);
 	}
-
+	
+	/**
+	 * Get Patient's details and medical history during given time period.
+	 * @param start
+	 * @param end
+	 * @return
+	 */
 	public String toString(Date start, Date end) {
 		String format = "%-20s %-40s %n";
 		String s = "";
@@ -94,20 +145,6 @@ public class Patient {
 		return String.format(format, Attribute.EMAIL, email);
 	}
 	
-	public LinkedList<Diagnosis> getMedicalHistory(Date start, Date end) { 
-		LinkedList<Diagnosis> diagnoses = new LinkedList<Diagnosis>();
-		if (start == null && end == null) {
-			diagnoses = this.medicalHistory;
-		} else {
-			for (Diagnosis d: medicalHistory) {
-				if (d.getDate().after(start) && d.getDate().before(end)) {
-					diagnoses.add(d);
-				}
-			}
-		}
-		return diagnoses;
-	}
-
 	private String toStringMedicalHistory(String format, Date start, Date end) {
 		LinkedList<Diagnosis> diagnoses = this.getMedicalHistory(start, end);
 		

@@ -3,6 +3,14 @@ import java.util.*;
 import java.text.ParseException;
 import java.util.regex.Pattern;
 
+/**
+ * This class read, load and process medical record file, executes instructions
+ * on instruction file, and print the output. Query results are stored as a
+ * report file.
+ * @author VG
+ *
+ */
+
 public class Record {
 	private LinkedList<Patient> patients = new LinkedList<Patient>();
 	private int lastUsedId = 0;
