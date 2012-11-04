@@ -19,7 +19,6 @@ public class Record {
 		this.reportFile = reportFile;
 		this.executeInstructions(instructionFile, records);
 		this.printOutput(outputFile);
-		//print();
 	}
 
 	private void executeInstructions(File instructionFile,
@@ -56,16 +55,19 @@ public class Record {
 	private void executeQuery(String rawData,
 			Map<String, String> instructionData, LinkedList<Patient> records)
 			throws java.text.ParseException {
+		
 		// Query by name
 		if (instructionData.get(Attribute.NAME) != null)
 			this.appendQueryResult(this.findPatient(
 					instructionData.get(Attribute.NAME), records), rawData);
- 		// Query by birthday
+ 		
+		// Query by birthday
 		if (instructionData.get(Attribute.BIRTHDAY) != null) {
 			Date birthday = EMRUtil.stringToDate(instructionData
 					.get(Attribute.BIRTHDAY));
 			this.appendQueryResult(this.findPatient(birthday, records), rawData);
 		}
+		
 		// Query by id
 		if (instructionData.get(Attribute.PATIENTID) != null) {
 			int id = Integer.parseInt(instructionData.get(Attribute.PATIENTID));
@@ -82,8 +84,8 @@ public class Record {
 		try {
 			PrintWriter out = new PrintWriter(new FileWriter(this.reportFile,
 					true));
-			out.println("-----------------  " + "query " + rawData
-					+ "  -----------------");
+			out.println("---------------------  " + "query " + rawData
+					+ "  ---------------------");
 			out.println();
 			for (Patient p : results) {
 				out.println(p.toString());
@@ -100,11 +102,12 @@ public class Record {
 
 	private void executeDelete(Map<String, String> instructionData,
 			LinkedList<Patient> records) throws java.text.ParseException {
+		
 		// Delete by id
 		if (instructionData.get(Attribute.PATIENTID) != null) {
 			int id = Integer.parseInt(instructionData.get(Attribute.PATIENTID));
 			records.remove(this.findPatient(id, records));
-
+		
 		// Delete by name & birthday
 		} else if (instructionData.get(Attribute.NAME) != null
 				&& instructionData.get(Attribute.BIRTHDAY) != null) {
@@ -125,11 +128,11 @@ public class Record {
 		String medicalHistory = instructionData.get(Attribute.MEDICALHISTORY);
 		
 		Patient patient = findPatient(name, birthday, records);
-		// Patient does not already exist
+		// Patient does not already exist, create and patient to existing record
 		if (patient == null) {
 			if (this.validPatientRecord(instructionData)) records.add(this.createPatient(instructionData));
+		// Patient already exists, update existing record
 		} else {
-			// Patient already exists
 			if (phone != -1) patient.setPhone(phone);
 			if (address != null) patient.setAddress(address);
 			if (email != null) patient.setEmail(email);
@@ -138,23 +141,30 @@ public class Record {
 	}
 
 	private Map<String, String> readInstructionData(String command, String data) {
+		if (command.equals(Command.SAVE)) return null;
+		
 		Scanner scanner = new Scanner(data.trim());
 		scanner.useDelimiter(Pattern.compile(";", Pattern.MULTILINE));
 		Map<String, String> attributeValuePairs = new HashMap<String, String>();
-
-		while (scanner.hasNext()) {
-			String curr = scanner.next();
-			curr = curr.trim();
-			String[] pair = curr.split("\\s", 2);
-			if (command.equals("save"))
-				break;
-			// TODO: handle date between
-			if (command.equals("query") && (pair.length == 1)) {
-				// System.out.println(attributeValuePairs);
-				// attributeValuePairs.put("date", pair[0]);
-				break;
+		
+		// store attributes for add and delete commands
+		if (command.equals(Command.ADD) || command.equals(Command.DELETE)) {
+			while (scanner.hasNext()) { 
+				String[] pair = scanner.next().trim().split("\\s", 2);
+				attributeValuePairs.put(pair[0], pair[1]);
 			}
-			attributeValuePairs.put(pair[0], pair[1]);
+		}
+		
+		// store query name, birthday, start date and end date
+		if (command.equals(Command.QUERY)) {
+			// store name or birthday
+			if (scanner.hasNext()) {
+				String[] pair = scanner.next().trim().split("\\s", 2);
+				attributeValuePairs.put(pair[0], pair[1]);
+			}
+			if (scanner.hasNext()) attributeValuePairs.put("start", scanner.next().trim());
+			if (scanner.hasNext()) attributeValuePairs.put("end", scanner.next().trim());
+			System.out.println(attributeValuePairs);
 		}
 		scanner.close();
 		return attributeValuePairs;
@@ -224,11 +234,10 @@ public class Record {
 
 	private Patient createPatient(Map<String, String> attributeValuePairs)
 			throws java.text.ParseException {
-		// Set and validate email, if invalid make null
+		
+		// Set fields with assumptions data is valid
 		String email = EMRUtil.validEmail(attributeValuePairs.get(Attribute.EMAIL));
-		// Set and validate phone, if invalid make -1
 		int phone = EMRUtil.validPhone(attributeValuePairs.get(Attribute.PHONE));
-		// Set other fields
 		String name = attributeValuePairs.get(Attribute.NAME);
 		Date birthday = EMRUtil.stringToDate(attributeValuePairs
 				.get(Attribute.BIRTHDAY));
@@ -242,23 +251,10 @@ public class Record {
 				medicalHistory);
 	}
 
-	private boolean validPatientRecord(Map<String, String> attributeValuePairs) {
-		// Ensure birthday is valid
-		if (!EMRUtil.dateIsValid(attributeValuePairs.get(Attribute.BIRTHDAY)))
-			return false;
-		// Ensure name is valid
-		if (!EMRUtil.nameIsValid(attributeValuePairs.get(Attribute.NAME)))
-			return false;
-		// Ensure name & birthday exist
-		if (attributeValuePairs.get(Attribute.NAME) == null
-				|| attributeValuePairs.get(Attribute.BIRTHDAY) == null)
-			return false;
-		return true;
-	}
-
 	private LinkedList<Patient> createPatientRecord(File file)
 			throws FileNotFoundException, java.text.ParseException {
-		/* Scan each record delimited by a blank line */
+		
+		// Scan each record delimited by a blank line
 		Scanner scanner = new Scanner(file).useDelimiter(Pattern.compile(
 				"^\\s*$", Pattern.MULTILINE));
 		LinkedList<Patient> records = new LinkedList<Patient>();
@@ -271,6 +267,23 @@ public class Record {
 		scanner.close();
 		return records;
 	}
+	
+	private boolean validPatientRecord(Map<String, String> attributeValuePairs) {
+		
+		// Ensure birthday is valid
+		if (!EMRUtil.dateIsValid(attributeValuePairs.get(Attribute.BIRTHDAY)))
+			return false;
+		
+		// Ensure name is valid
+		if (!EMRUtil.nameIsValid(attributeValuePairs.get(Attribute.NAME)))
+			return false;
+		
+		// Ensure name & birthday exist
+		if (attributeValuePairs.get(Attribute.NAME) == null
+				|| attributeValuePairs.get(Attribute.BIRTHDAY) == null)
+			return false;
+		return true;
+	}
 
 	private LinkedList<Diagnosis> readMedicalHistory(String medicalHistory)
 			throws java.text.ParseException {
@@ -279,9 +292,9 @@ public class Record {
 		
 		// Handles commas from 'add' instructions
 		medicalHistory = medicalHistory.replaceAll(",\\s*", "\n");
+		
 		LinkedList<Diagnosis> diagnoses = new LinkedList<Diagnosis>();
 		Scanner scanner = new Scanner(medicalHistory);
-
 		while (scanner.hasNextLine()) {
 			String date = "", information = "";
 			String[] words = scanner.nextLine().split("\\s+");

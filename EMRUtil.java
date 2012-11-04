@@ -25,8 +25,8 @@ public class EMRUtil {
 	}
 
 	public static boolean nameIsValid(String s) {
-		if (s == null)
-			return false;
+		// TODO: name validation
+		if (s == null) return false;
 		return true;
 		// return s.matches(".+@.+\\.[a-z]+");
 	}
