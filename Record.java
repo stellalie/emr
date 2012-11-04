@@ -7,42 +7,38 @@ import java.util.regex.Pattern;
 
 public class Record {
 	private LinkedList<Patient> patients = new LinkedList<Patient>();
-	private File reportFile;
 	private int lastUsedId = 0;
 
 	public Record(File medicalRecordFile, File instructionFile,
 			File outputFile, File reportFile) throws FileNotFoundException,
 			java.text.ParseException {
 		LinkedList<Patient> records = createPatientRecord(medicalRecordFile);
-		if (reportFile.exists())
-			reportFile.delete();
-		this.reportFile = reportFile;
-		this.executeInstructions(instructionFile, records);
+		if (reportFile.exists()) reportFile.delete();
+		this.executeInstructions(instructionFile, reportFile, records);
 		this.printOutput(outputFile);
 	}
 
-	private void executeInstructions(File instructionFile,
+	private void executeInstructions(File instructionFile, File reportFile,
 			LinkedList<Patient> records) throws FileNotFoundException,
 			java.text.ParseException {
 		Scanner scanner = new Scanner(instructionFile);
 		String command = "", data = "";
 		while (scanner.hasNext()) {
 			command = scanner.next();
-			if (scanner.hasNextLine())
-				data = scanner.nextLine();
-
-			this.execute(command, data.trim(),
-					this.readInstructionData(command, data.trim()), records);
+			if (scanner.hasNextLine()) data = scanner.nextLine();
+			this.execute(command,
+					this.readInstructionData(command, data.trim()), 
+					reportFile, records);
 			command = "";
 			data = "";
 		}
 	}
 
-	private void execute(String command, String rawData,
-			Map<String, String> data, LinkedList<Patient> records)
+	private void execute(String command, Map<String, String> data, 
+			File reportFile, LinkedList<Patient> records)
 			throws java.text.ParseException {
 		if (command.equals(Command.SAVE)) executeSave(records);
-		else if (command.equals(Command.QUERY)) executeQuery(rawData, data, records);
+		else if (command.equals(Command.QUERY)) executeQuery(data, reportFile, records);
 		else if (command.equals(Command.ADD)) executeAdd(data, records);
 		else if (command.equals(Command.DELETE)) executeDelete(data, records);
 		else System.out.println("Invalid command!");
@@ -52,20 +48,21 @@ public class Record {
 		patients.addAll(records);
 	}
 
-	private void executeQuery(String rawData,
-			Map<String, String> instructionData, LinkedList<Patient> records)
-			throws java.text.ParseException {
+	private void executeQuery(Map<String, String> instructionData, File reportFile,
+			LinkedList<Patient> records) throws java.text.ParseException {
 		
 		// Query by name
 		if (instructionData.get(Attribute.NAME) != null)
 			this.appendQueryResult(this.findPatient(
-					instructionData.get(Attribute.NAME), records), instructionData);
+					instructionData.get(Attribute.NAME), records), 
+					reportFile, instructionData);
  		
 		// Query by birthday
 		if (instructionData.get(Attribute.BIRTHDAY) != null) {
 			Date birthday = EMRUtil.stringToDate(instructionData
 					.get(Attribute.BIRTHDAY));
-			this.appendQueryResult(this.findPatient(birthday, records), instructionData);
+			this.appendQueryResult(this.findPatient(birthday, records), 
+					reportFile, instructionData);
 		}
 		
 		// Query by id
@@ -75,51 +72,73 @@ public class Record {
 				LinkedList<Patient> results = new LinkedList<Patient>();
 				System.out.println();
 				results.add(this.findPatient(id, records));
-				this.appendQueryResult(results, instructionData);
+				this.appendQueryResult(results, reportFile, instructionData);
 			}
 		}
 	}
 
-	private void appendQueryResult(LinkedList<Patient> results, 
+	private void appendQueryResult(LinkedList<Patient> results, File reportFile,
 			Map<String, String> instructionData) {
 		try {
-			PrintWriter out = new PrintWriter(new FileWriter(this.reportFile,
+			PrintWriter out = new PrintWriter(new FileWriter(reportFile,
 					true));
-
-			// Print query results
-			// Print if there are date limits on medical history
-			if ((instructionData.get("start") != null) && (instructionData.get("end") != null)) {
-				Date start = EMRUtil.stringToDate(instructionData.get("start"));
-				Date end = EMRUtil.stringToDate(instructionData.get("end"));
-				// Print only if date limits are valid and end date is not earlier than start date
-				if (start.before(end)) for (Patient p : results) {
-					out.println(this.getQueryResultHeader(instructionData));
-					out.println(p.toString(start, end));
-					out.println(this.getQueryResultFooter(instructionData));
-				}
-			// Print if no date limits on medical history
-			} else {
-				out.println(this.getQueryResultHeader(instructionData));
-				for (Patient p : results) out.println(p.toString());
-				out.println(this.getQueryResultFooter(instructionData));
-			}
-			
+			out.print(this.getQueryResult(results, instructionData));
 			out.close();
 		} catch (Exception e) {
 			System.out.println("Report file not found!");
 		}
 	}
 	
-	private String getQueryResultHeader(Map<String, String> instructionData) {
+	private String getQueryResult(LinkedList<Patient> results, 
+			Map<String, String> instructionData) throws ParseException {
 		String s = "";
-		s += "---------------------  " + "query " + instructionData 
+		
+		// Build result string if there are date limits on medical history
+		if ((instructionData.get("start") != null) && (instructionData.get("end") != null)) {
+			Date start = EMRUtil.stringToDate(instructionData.get("start"));
+			Date end = EMRUtil.stringToDate(instructionData.get("end"));
+			// Print only if date limits are valid and end date is not earlier than start date
+			if (start.before(end)) {
+				s += this.getQueryResultHeader(instructionData) + "\n";
+				for (Patient p : results) s += p.toString(start, end) + "\n";
+				s += this.getQueryResultFooter(instructionData) + "\n";
+			}
+			
+		// Build result string if no date limits on medical history
+		} else {
+			s += this.getQueryResultHeader(instructionData) + "\n";
+			for (Patient p : results) s += p.toString() + "\n";
+			s += this.getQueryResultFooter(instructionData) + "\n";
+		}
+		return s;
+	}
+	
+	private String getQueryResultHeader(Map<String, String> instructionData) {
+		String instruction = "";
+		
+		// build query command string
+		if (instructionData.get(Attribute.PATIENTID) != null) 
+			instruction += "patient " 
+						+ Integer.parseInt(instructionData.get(Attribute.PATIENTID));
+		if (instructionData.get(Attribute.NAME) != null) 
+			instruction += Attribute.NAME + " " 
+						+ instructionData.get(Attribute.NAME);
+		if (instructionData.get(Attribute.BIRTHDAY) != null) 
+			instruction += Attribute.BIRTHDAY + " " 
+						+ instructionData.get(Attribute.BIRTHDAY);
+		if (instructionData.get("start") != null && instructionData.get("start") != null) 
+			instruction += "; " + instructionData.get("start")
+						+ "; " + instructionData.get("end")
+						+ "; ";
+		String s = "";
+		s += "---------------------  " + "query " + instruction 
 				+ "  ---------------------\n";
 		return s;
 	}
 	
 	private String getQueryResultFooter(Map<String, String> instructionData) {
 		String s = "";
-		s += "---------------------- end of query ----------------------\n";
+		s += "--------------------- End of Query -----------------------------\n";
 		s += " \n";
 		s += " \n";
 		s += " \n";
@@ -279,6 +298,8 @@ public class Record {
 		while (scanner.hasNext()) {
 			String record = scanner.next().trim();
 			Map<String, String> preparedRecord = this.readPatientRecord(record);
+			
+			// create and add patient if data is valid
 			if (this.validPatientRecord(preparedRecord))
 				records.add(this.createPatient(preparedRecord));
 		}
