@@ -284,17 +284,14 @@ public class Record {
 
 	private LinkedList<Diagnosis> readMedicalHistory(String medicalHistory)
 			throws java.text.ParseException {
-		if (medicalHistory == null)
-			return null;
-
+		if (medicalHistory == null) return null;
+		if (medicalHistory.split("\\s+").length < 2) return null;
+		
 		// Handles commas from 'add' instructions
 		medicalHistory = medicalHistory.replaceAll(",\\s*", "\n");
-
 		LinkedList<Diagnosis> diagnoses = new LinkedList<Diagnosis>();
 		Scanner scanner = new Scanner(medicalHistory);
 
-		if (medicalHistory.split("\\s+").length < 2)
-			return null;
 		while (scanner.hasNextLine()) {
 			String date = "", information = "";
 			String[] words = scanner.nextLine().split("\\s+");
