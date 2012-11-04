@@ -122,24 +122,25 @@ public class Record {
 	private void executeAdd(Map<String, String> instructionData,
 			LinkedList<Patient> records) throws ParseException {
 		// Assuming all data correct & exists, might need data validation here
-		Patient tempPatient = createPatient(instructionData);
-		Patient patient = findPatient(tempPatient.getName(),
-				tempPatient.getBirthday(), records);
-
+		String name = instructionData.get(Attribute.NAME);
+		Date birthday = EMRUtil.stringToDate(instructionData.get(Attribute.BIRTHDAY));
+		int phone = -1;
+		if (instructionData.get(Attribute.PHONE) != null) 
+			phone = Integer.parseInt(instructionData.get(Attribute.PHONE));
+		String address = instructionData.get(Attribute.ADDRESS);
+		String email = instructionData.get(Attribute.EMAIL);
+		String medicalHistory = instructionData.get(Attribute.MEDICALHISTORY);
+		
+		Patient patient = findPatient(name, birthday, records);
 		// Patient does not already exist
 		if (patient == null)
-			records.add(tempPatient);
+			records.add(createPatient(instructionData));
 		else {
 			// Patient already exists.
-			EMRUtil.lastUsedId--;
-			records.get(records.indexOf(patient)).setPhone(
-					tempPatient.getPhone());
-			records.get(records.indexOf(patient)).setAddress(
-					tempPatient.getAddress());
-			records.get(records.indexOf(patient)).setEmail(
-					tempPatient.getEmail());
-			records.get(records.indexOf(patient)).addDiagnoses(
-					tempPatient.getMedicalHistory());
+			if (phone != -1) patient.setPhone(phone);
+			if (address != null) patient.setAddress(address);
+			if (email != null) patient.setEmail(email);
+			if (medicalHistory != null) patient.addDiagnoses(this.readMedicalHistory(medicalHistory));
 		}
 	}
 
