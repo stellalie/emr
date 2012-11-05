@@ -61,6 +61,7 @@ public class EMRUtil {
 	public static boolean nameIsValid(String s) {
 		if (s == null) return false;
 		if (s.matches(".*\\d.*")) return false;
+		if (s.matches(".*\\p{P}.*")) return false;
 		return true;
 	}
 	
