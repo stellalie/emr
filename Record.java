@@ -14,7 +14,18 @@ import java.util.regex.Pattern;
 public class Record {
 	private LinkedList<Patient> patients = new LinkedList<Patient>();
 	private int lastUsedId = 0;
-
+	
+	/**
+	 * This is a class constructors for report. Upon creation, it read, load, and
+	 * process medical record file, executes instructions on instruction file and
+	 * print the output. Query results are stored on a report file.
+	 * @param medicalRecordFile
+	 * @param instructionFile
+	 * @param outputFile
+	 * @param reportFile
+	 * @throws FileNotFoundException
+	 * @throws java.text.ParseException
+	 */
 	public Record(File medicalRecordFile, File instructionFile,
 			File outputFile, File reportFile) throws FileNotFoundException,
 			java.text.ParseException {
@@ -23,7 +34,15 @@ public class Record {
 		this.executeInstructions(instructionFile, reportFile, records);
 		this.printOutput(outputFile);
 	}
-
+	
+	/**
+	 * Parse instruction file to a set of command data pairs then execute them.
+	 * @param instructionFile File that contains instructions
+	 * @param reportFile File to write query results to
+	 * @param records List of Patient the instructions are ran against
+	 * @throws FileNotFoundException
+	 * @throws java.text.ParseException
+	 */
 	private void executeInstructions(File instructionFile, File reportFile,
 			LinkedList<Patient> records) throws FileNotFoundException,
 			java.text.ParseException {
@@ -39,7 +58,16 @@ public class Record {
 			data = "";
 		}
 	}
-
+	
+	/**
+	 * Execute commands given a command data pairs set. E.g: command would be
+	 * "delete" and data pairs set {name=Jeff Vader, birthday=08=09=1901}
+	 * @param command
+	 * @param data
+	 * @param reportFile
+	 * @param records
+	 * @throws java.text.ParseException
+	 */
 	private void execute(String command, Map<String, String> data, 
 			File reportFile, LinkedList<Patient> records)
 			throws java.text.ParseException {
@@ -53,7 +81,16 @@ public class Record {
 	private void executeSave(LinkedList<Patient> records) {
 		patients.addAll(records);
 	}
-
+	
+	/**
+	 * Perform query by patient name or birthday, patient ID then append the result
+	 * to report file. All query results are displayed in ascending order or patient
+	 * name and birthday.
+	 * @param instructionData
+	 * @param reportFile
+	 * @param records
+	 * @throws java.text.ParseException
+	 */
 	private void executeQuery(Map<String, String> instructionData, File reportFile,
 			LinkedList<Patient> records) throws java.text.ParseException {
 		
@@ -82,7 +119,13 @@ public class Record {
 			}
 		}
 	}
-
+	
+	/**
+	 * Append a formatted string to existing report file
+	 * @param results
+	 * @param reportFile
+	 * @param instructionData
+	 */
 	private void appendQueryResult(LinkedList<Patient> results, File reportFile,
 			Map<String, String> instructionData) {
 		try {
@@ -94,9 +137,20 @@ public class Record {
 		}
 	}
 	
+	/**
+	 * Get a formatted string ready for printing given a list of patients result
+	 * and instructions. All query results are displayed in ascending order or patient
+	 * name and birthday. Generate header and footer.
+	 * @param results a list patient as a result of querying
+	 * @param instructionData instructions used to generate the results
+	 * @throws ParseException
+	 */
 	private String getQueryResult(LinkedList<Patient> results, 
 			Map<String, String> instructionData) throws ParseException {
 		String s = "";
+		
+		// Sort patient results
+		this.sortPatients(results);
 		
 		// Build result string if there are date limits on medical history
 		if ((instructionData.get("start") != null) && (instructionData.get("end") != null)) {
@@ -149,7 +203,13 @@ public class Record {
 		s += " \n";
 		return s;
 	}
-
+	
+	/**
+	 * Delete a record from given list by name and birthday OR by patient ID
+	 * @param instructionData
+	 * @param records
+	 * @throws java.text.ParseException
+	 */
 	private void executeDelete(Map<String, String> instructionData,
 			LinkedList<Patient> records) throws java.text.ParseException {
 		
@@ -167,7 +227,16 @@ public class Record {
 			records.remove(this.findPatient(name, birthday, records));
 		}
 	}
-
+	
+	/**
+	 * Execute "add" command to given Patient list. If both patient name and 
+	 * birthday are identical to those of an existing record in the list, 
+	 * the existing record will be updated with the new input information. Otherwise
+	 * a new valid medical record will be added to the list
+	 * @param instructionData
+	 * @param records
+	 * @throws ParseException
+	 */
 	private void executeAdd(Map<String, String> instructionData,
 			LinkedList<Patient> records) throws ParseException {
 		String name = instructionData.get(Attribute.NAME);
@@ -189,7 +258,13 @@ public class Record {
 			if (medicalHistory != null) patient.addDiagnoses(this.readMedicalHistory(medicalHistory));
 		}
 	}
-
+	
+	/**
+	 * Return set of command data pairs given command (raw) and data (raw).
+	 * @param command
+	 * @param data
+	 * @return command data pairs, e.g: {"name", "Mary Beor"}
+	 */
 	private Map<String, String> readInstructionData(String command, String data) {
 		if (command.equals(Command.SAVE)) return null;
 		
@@ -218,12 +293,16 @@ public class Record {
 		scanner.close();
 		return attributeValuePairs;
 	}
-
-	private void printOutput(File file) {
+	
+	/**
+	 * Print EMR record's list of patients to file
+	 * @param outputFile
+	 */
+	private void printOutput(File outputFile) {
 		if (patients.size() == 0)
 			return;
 		try {
-			PrintWriter out = new PrintWriter(file);
+			PrintWriter out = new PrintWriter(outputFile);
 			for (Patient p : patients) {
 				out.println(p.toString());
 				out.println();
@@ -233,7 +312,14 @@ public class Record {
 			System.out.println("Output file not found!");
 		}
 	}
-
+	
+	/**
+	 * Find patient by name and birthday given a list of patients
+	 * @param name
+	 * @param birthday
+	 * @param records
+	 * @return
+	 */
 	private Patient findPatient(String name, Date birthday,
 			LinkedList<Patient> records) {
 		LinkedList<Patient> resultByName = this.findPatient(name, records);
@@ -245,7 +331,13 @@ public class Record {
 		}
 		return null;
 	}
-
+	
+	/**
+	 * Find patient by id given a list of patients
+	 * @param id
+	 * @param records
+	 * @return
+	 */
 	private Patient findPatient(int id, LinkedList<Patient> records) {
 		for (Patient p : records) {
 			if (id == p.getId())
@@ -253,7 +345,13 @@ public class Record {
 		}
 		return null;
 	}
-
+	
+	/**
+	 * Find patient by name given a list of patients
+	 * @param name
+	 * @param records
+	 * @return
+	 */
 	private LinkedList<Patient> findPatient(String name,
 			LinkedList<Patient> records) {
 		LinkedList<Patient> results = new LinkedList<Patient>();
@@ -263,7 +361,13 @@ public class Record {
 		}
 		return results;
 	}
-
+	
+	/**
+	 * Find patient by birthday given a list of patients
+	 * @param birthday
+	 * @param records
+	 * @return
+	 */
 	private LinkedList<Patient> findPatient(Date birthday,
 			LinkedList<Patient> records) {
 		LinkedList<Patient> results = new LinkedList<Patient>();
@@ -273,7 +377,79 @@ public class Record {
 		}
 		return results;
 	}
-
+	
+	private LinkedList<Patient> sortPatients(LinkedList<Patient> records) {
+		this.sortPatientsByName(records);
+		this.sortPatientsByBirthday(records);
+		return records;
+	}
+	
+	/**
+	 * Sort patients by name (ascending; a to z) using simple insertion sort algorithm
+	 * @param records
+	 * @return sorted Patient list
+	 */
+	private LinkedList<Patient> sortPatientsByName(LinkedList<Patient> records) {
+		int i, j, iMin;
+		// Advance the position through the entire array
+		for (j = 0; j < records.size() - 1; j++) {
+			// Find the min element in the unsorted records.get(j .. records.size())
+			// Assume the min is the first element
+			iMin = j;
+			// Test against element after j to find the smallest
+			for (i = j + 1; i < records.size(); i ++) {
+				// Compare Patient's name first character
+				if (records.get(i).getName().charAt(0) < records.get(iMin).getName().charAt(0))
+					// Found new minimum; remember its index
+					iMin = i;
+			}
+			// iMin is the index of the minimum element. Swap it with current position
+			if (iMin != j) {
+				Patient temp = records.get(j);
+				records.set(j, records.get(iMin));
+				records.set(iMin, temp);
+			}
+		}
+		return records;
+	}
+	
+	/**
+	 * Sort patients by birthday (ascending; earliest to latest) using simple 
+	 * insertion sort algorithm.
+	 * @param records
+	 * @return sorted Patient list
+	 */
+	private LinkedList<Patient> sortPatientsByBirthday(LinkedList<Patient> records) {
+		int i, j, iMin;
+		// Advance the position through the entire array
+		for (j = 0; j < records.size() - 1; j++) {
+			// Find the min element in the unsorted records.get(j .. records.size())
+			// Assume the min is the first element
+			iMin = j;
+			// Test against element after j to find the smallest
+			for (i = j + 1; i < records.size(); i ++) {
+				// Compare Patient's birthday
+				if (records.get(i).getBirthday().before(records.get(iMin).getBirthday()))
+					// Found new minimum; remember its index
+					iMin = i;
+			}
+			// iMin is the index of the minimum element. Swap it with current position
+			if (iMin != j) {
+				Patient temp = records.get(j);
+				records.set(j, records.get(iMin));
+				records.set(iMin, temp);
+			}
+		}
+		return records;
+	}
+	
+	/**
+	 * Create and return a Patient object given attribute value pairs set. With the
+	 * assumption that data pairs are valid.
+	 * @param attributeValuePairs
+	 * @return
+	 * @throws java.text.ParseException
+	 */
 	private Patient createPatient(Map<String, String> attributeValuePairs)
 			throws java.text.ParseException {
 		
@@ -292,7 +468,15 @@ public class Record {
 		return new Patient(this.lastUsedId, name, birthday, phone, address, email,
 				medicalHistory);
 	}
-
+	
+	/**
+	 * Return a list of Patient given a record file. Patient data are separated
+	 * by a blank line. Patients are created only if record data is valid.
+	 * @param file
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws java.text.ParseException
+	 */
 	private LinkedList<Patient> createPatientRecord(File file)
 			throws FileNotFoundException, java.text.ParseException {
 		
@@ -312,6 +496,11 @@ public class Record {
 		return records;
 	}
 	
+	/**
+	 * Determine whether a record is valid given a set of value pairs. A record is
+	 * valid is birthday and name are not empty and valid.
+	 * @param attributeValuePairs
+	 */
 	private boolean validPatientRecord(Map<String, String> attributeValuePairs) {
 		
 		// Ensure birthday is valid
@@ -328,7 +517,14 @@ public class Record {
 			return false;
 		return true;
 	}
-
+	
+	/**
+	 * Read a string of medical history and convert them to
+	 * LinkedList<Diagnosis>, separated with either a newline or a comma
+	 * @param medicalHistory
+	 * @return LinkedList<Diagnosis>
+	 * @throws java.text.ParseException
+	 */
 	private LinkedList<Diagnosis> readMedicalHistory(String medicalHistory)
 			throws java.text.ParseException {
 		if (medicalHistory == null) return null;
@@ -355,6 +551,13 @@ public class Record {
 		return diagnoses;
 	}
 	
+	/**
+	 * Read a chunk of patient record and convert them to attribute value pairs
+	 * (pairs are in String) to be processed later. Value is a string following
+	 * an attribute keyword.
+	 * @param record
+	 * @return attribute value pairs, e.g: {"name", "John Smith"}
+	 */
 	private Map<String, String> readPatientRecord(String record) {
 		Map<String, String> attributeValuePairs = new HashMap<String, String>();
 		String attribute = "", value = "";
